@@ -17,9 +17,9 @@
 
   <properties>
     <vavi-net-fuse.groupId>com.github.umjammer.vavi-apps-fuse</vavi-net-fuse.groupId>
-    <vavi-net-fuse.version>0.1.7</vavi-net-fuse.version>
-    <vavi-nio-file.groupId>vavi</vavi-nio-file.groupId> <!-- com.github.umjammer -->
-    <vavi-nio-file.version>0.0.14-SNAPSHOT</vavi-nio-file.version>
+    <vavi-net-fuse.version>0.1.8</vavi-net-fuse.version>
+    <vavi-nio-file.groupId>com.github.umjammer</vavi-nio-file.groupId> <!-- com.github.umjammer -->
+    <vavi-nio-file.version>0.0.14</vavi-nio-file.version>
     <truevfs.version>0.14.0</truevfs.version>
   </properties>
 
@@ -61,7 +61,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.8.2</version>
+        <version>5.9.1</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -98,12 +98,12 @@
     <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>java7-fs-base</artifactId>
-      <version>0.0.12v</version>
+      <version>0.0.13v</version>
     </dependency>
     <dependency>
       <groupId>com.github.umjammer.vavi-net-auth</groupId>
       <artifactId>vavi-net-auth-common</artifactId>
-      <version>0.1.4</version>
+      <version>0.1.6</version>
     </dependency>
 
     <dependency>
