@@ -23,5 +23,3 @@ public class TrueVfsFileSystemOptionsFactory extends FileSystemOptionsFactory {
         addLinkOption(LinkOption.NOFOLLOW_LINKS);
     }
 }
-
-/* */
