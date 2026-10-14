@@ -4,28 +4,28 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.vfs;
+package vavi.nio.file.ftpoverhttp;
 
 import java.net.URI;
 import java.net.URLEncoder;
-import java.nio.file.FileSystem;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import vavi.nio.file.truevfs.TrueVfsFileSystemProvider;
+import vavi.nio.file.ftpovergttp.FtpOverHttpFileSystemProvider;
 
-import static vavi.nio.file.Base.testMoveFolder;
+import static vavi.nio.file.Base.testAll;
 
 
 /**
- * Vfs. move folder (sftp)
+ * TrueVFS JavaFS.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
- * @version 0.00 2016/03/xx umjammer initial version <br>
+ * @version 0.00 2016/04/03 umjammer initial version <br>
  */
-public class Main3 {
+public class TestCase {
 
     /**
      * environment variable
@@ -40,16 +40,14 @@ public class Main3 {
     @Test
     @Disabled("no writing scheme")
     void test01() throws Exception {
-        String username = URLEncoder.encode(System.getenv("TEST_SFTP_ACCOUNT"), "utf-8");
-        String passPhrase = System.getenv("TEST_SFTP_PASSPHRASE");
+        String username = URLEncoder.encode(System.getenv("TEST_SFTP_ACCOUNT"), StandardCharsets.UTF_8);
+        String passPhrase = URLEncoder.encode(System.getenv("TEST_SFTP_PASSPHRASE"), StandardCharsets.UTF_8);
         String host = System.getenv("TEST_SFTP_HOST");
-        String keyPath = System.getenv("TEST_SFTP_KEYPATH");
+        String keyPath = URLEncoder.encode(System.getenv("TEST_SFTP_KEYPATH"), StandardCharsets.UTF_8);
         String path = System.getenv("TEST_SFTP_PATH");
 
         URI uri = URI.create(String.format("truevfs:sftp://%s@%s%s?keyPath=%s&passphrase=%s", username, host, path, keyPath, passPhrase));
 
-        FileSystem fs = new TrueVfsFileSystemProvider().newFileSystem(uri, Collections.emptyMap());
-
-        testMoveFolder(fs);
+        testAll(new FtpOverHttpFileSystemProvider().newFileSystem(uri, Collections.emptyMap()));
     }
 }

@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.truevfs;
+package vavi.nio.file.ftpovergttp;
 
 import java.io.IOException;
 import java.net.URI;
@@ -26,20 +26,20 @@ import net.java.truevfs.access.TFile;
 
 
 /**
- * TrueVfsFileSystemRepository.
+ * FtpOverHttpFileSystemRepository.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2021/11/30 umjammer initial version <br>
  */
 @ParametersAreNonnullByDefault
-public final class TrueVfsFileSystemRepository extends FileSystemRepositoryBase {
+public final class FtpOverHttpFileSystemRepository extends FileSystemRepositoryBase {
 
-    public TrueVfsFileSystemRepository() {
-        super("truevfs", new TrueVfsFileSystemFactoryProvider());
+    public FtpOverHttpFileSystemRepository() {
+        super("truevfs", new FtpOverHttpFileSystemFactoryProvider());
     }
 
     /**
-     * @param uri "truevfs:protocol:///?alias=alias",
+     * @param uri "ftpoverhttp:protocol:///?alias=alias",
      *            sub url (after "truevfs:") parts will be replaced by properties.
      *            if you don't use alias, the url must include username, password, host, port.
      */
@@ -52,8 +52,8 @@ Debug.println(Level.FINE, "baseUrl: " + baseUrl);
         TConfig config = TConfig.current();
         TFile root = new TFile(baseUrl);
 Debug.println(Level.FINE, "root: " + root);
-        TrueVfsFileStore fileStore = new TrueVfsFileStore(root, factoryProvider.getAttributesFactory());
-        return new TrueVfsFileSystemDriver(fileStore, factoryProvider, config, baseUrl, env);
+        FtpOverHttpFileStore fileStore = new FtpOverHttpFileStore(root, factoryProvider.getAttributesFactory());
+        return new FtpOverHttpFileSystemDriver(fileStore, factoryProvider, config, baseUrl, env);
     }
 
     /* ad-hoc hack for ignoring checking opacity */

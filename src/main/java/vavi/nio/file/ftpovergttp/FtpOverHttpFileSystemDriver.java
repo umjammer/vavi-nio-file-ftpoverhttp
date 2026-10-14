@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.truevfs;
+package vavi.nio.file.ftpovergttp;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,23 +29,22 @@ import com.github.fge.filesystem.provider.FileSystemFactoryProvider;
 import vavi.util.Debug;
 
 import static vavi.nio.file.Util.isAppleDouble;
-import static vavi.nio.file.Util.toFilenameString;
 import static vavi.nio.file.Util.toPathString;
 
-import net.java.truevfs.access.TConfig;
-import net.java.truevfs.access.TFile;
-import net.java.truevfs.access.TFileInputStream;
-import net.java.truevfs.access.TFileOutputStream;
+import net.java.ftpoverhttp.access.TConfig;
+import net.java.ftpoverhttp.access.TFile;
+import net.java.ftpoverhttp.access.TFileInputStream;
+import net.java.ftpoverhttp.access.TFileOutputStream;
 
 
 /**
- * TrueVfsFileSystemDriver.
+ * FtpOverHttpFileSystemDriver.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2016/03/30 umjammer initial version <br>
  */
 @ParametersAreNonnullByDefault
-public final class TrueVfsFileSystemDriver extends ExtendedFileSystemDriver<TFile> {
+public final class FtpOverHttpFileSystemDriver extends ExtendedFileSystemDriver<TFile> {
 
     private final TConfig config;
 
@@ -54,11 +53,11 @@ public final class TrueVfsFileSystemDriver extends ExtendedFileSystemDriver<TFil
     /**
      * @param env { "baseUrl": "smb://10.3.1.1/Temporary Share/", "ignoreAppleDouble": boolean }
      */
-    public TrueVfsFileSystemDriver(FileStore fileStore,
-            FileSystemFactoryProvider provider,
-            TConfig config,
-            String baseUrl,
-            Map<String, ?> env) throws IOException {
+    public FtpOverHttpFileSystemDriver(FileStore fileStore,
+                                       FileSystemFactoryProvider provider,
+                                       TConfig config,
+                                       String baseUrl,
+                                       Map<String, ?> env) throws IOException {
 
         super(fileStore, provider);
 
@@ -157,7 +156,7 @@ Debug.println(Level.FINE, "entry: " + entry + ", " + entry.exists());
 
     @Override
     protected TFile moveEntry(TFile sourceEntry, TFile targetParentEntry, Path source, Path target, boolean targetIsParent) throws IOException {
-        TFile targetEntry = getEntry(targetIsParent ? target.resolve(toFilenameString(source)) : target, false);
+        TFile targetEntry = getEntry(target, false);
         sourceEntry.mv(targetEntry);
         return targetEntry;
     }

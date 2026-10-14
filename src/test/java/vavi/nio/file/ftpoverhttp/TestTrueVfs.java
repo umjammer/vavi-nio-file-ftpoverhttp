@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.vfs;
+package vavi.nio.file.ftpoverhttp;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,17 +18,14 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.spi.FileSystemProvider;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
-import net.java.truevfs.access.TFileSystem;
 import net.java.truevfs.access.TFileSystemProvider;
 import net.java.truevfs.access.TPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import vavi.nio.file.truevfs.TrueVfsFileSystemProvider;
+
 import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;

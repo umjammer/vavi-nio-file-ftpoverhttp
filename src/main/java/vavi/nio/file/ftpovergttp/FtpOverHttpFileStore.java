@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.truevfs;
+package vavi.nio.file.ftpovergttp;
 
 import java.io.IOException;
 import java.nio.file.FileStore;
@@ -12,18 +12,18 @@ import java.nio.file.FileStore;
 import com.github.fge.filesystem.attributes.FileAttributesFactory;
 import com.github.fge.filesystem.filestore.FileStoreBase;
 
-import net.java.truevfs.access.TFile;
+import net.java.ftpoverhttp.access.TFile;
 
 
 /**
- * A simple TrueVFS {@link FileStore}
+ * A simple FtpOverHttp {@link FileStore}
  *
  * <p>
  * This makes use of information available in {@link FileSystemManager}.
  * Information is computed in "real time".
  * </p>
  */
-public final class TrueVfsFileStore extends FileStoreBase {
+public final class FtpOverHttpFileStore extends FileStoreBase {
 
     private final TFile root; // TODO how to get quota
 
@@ -32,8 +32,8 @@ public final class TrueVfsFileStore extends FileStoreBase {
      *
      * @param root the (valid) Commons VFS drive to use
      */
-    public TrueVfsFileStore(final TFile root, final FileAttributesFactory factory) {
-        super("truevfs", factory, false);
+    public FtpOverHttpFileStore(final TFile root, final FileAttributesFactory factory) {
+        super("ftpoverhttp", factory, false);
         this.root = root;
     }
 

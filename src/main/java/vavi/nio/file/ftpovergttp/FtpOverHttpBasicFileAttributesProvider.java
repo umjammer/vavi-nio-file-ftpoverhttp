@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.truevfs;
+package vavi.nio.file.ftpovergttp;
 
 import java.io.IOException;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -21,20 +21,20 @@ import javax.annotation.Nonnull;
 
 import com.github.fge.filesystem.attributes.provider.BasicFileAttributesProvider;
 
-import net.java.truevfs.access.TFile;
+import net.java.ftpoverhttp.access.TFile;
 
 
 /**
- * {@link BasicFileAttributes} implementation for TrueVFS
+ * {@link BasicFileAttributes} implementation for FtpOverHttp
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2021/11/30 umjammer initial version <br>
  */
-public final class TrueVfsBasicFileAttributesProvider extends BasicFileAttributesProvider implements PosixFileAttributes {
+public final class FtpOverHttpBasicFileAttributesProvider extends BasicFileAttributesProvider implements PosixFileAttributes {
 
     private final TFile entry;
 
-    public TrueVfsBasicFileAttributesProvider(@Nonnull final TFile entry) throws IOException {
+    public FtpOverHttpBasicFileAttributesProvider(@Nonnull final TFile entry) throws IOException {
         this.entry = Objects.requireNonNull(entry);
     }
 
