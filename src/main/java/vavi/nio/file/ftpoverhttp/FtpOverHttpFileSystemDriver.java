@@ -6,6 +6,8 @@
 
 package vavi.nio.file.ftpoverhttp;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,6 +17,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,15 +30,15 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import com.github.fge.filesystem.driver.ExtendedFileSystemDriver;
 import com.github.fge.filesystem.provider.FileSystemFactoryProvider;
 
+import org.apache.commons.net.ftp.FTPClient;
+import org.apache.commons.net.ftp.FTPFile;
+
+import vavi.nio.file.Util;
 import vavi.util.Debug;
 
 import static vavi.nio.file.Util.isAppleDouble;
+import static vavi.nio.file.Util.toFilenameString;
 import static vavi.nio.file.Util.toPathString;
-
-import net.java.ftpoverhttp.access.TConfig;
-import net.java.ftpoverhttp.access.TFile;
-import net.java.ftpoverhttp.access.TFileInputStream;
-import net.java.ftpoverhttp.access.TFileOutputStream;
 
 
 /**
@@ -44,9 +48,9 @@ import net.java.ftpoverhttp.access.TFileOutputStream;
  * @version 0.00 2016/03/30 umjammer initial version <br>
  */
 @ParametersAreNonnullByDefault
-public final class FtpOverHttpFileSystemDriver extends ExtendedFileSystemDriver<TFile> {
+public final class FtpOverHttpFileSystemDriver extends ExtendedFileSystemDriver<FTPFile> {
 
-    private final TConfig config;
+    private final FTPClient client;
 
     private final String baseUrl;
 
@@ -55,7 +59,7 @@ public final class FtpOverHttpFileSystemDriver extends ExtendedFileSystemDriver<
      */
     public FtpOverHttpFileSystemDriver(FileStore fileStore,
                                        FileSystemFactoryProvider provider,
-                                       TConfig config,
+                                       FTPClient client,
                                        String baseUrl,
                                        Map<String, ?> env) throws IOException {
 
@@ -63,111 +67,218 @@ public final class FtpOverHttpFileSystemDriver extends ExtendedFileSystemDriver<
 
         setEnv(env);
 
-        this.config = config;
+        this.client = client;
 
         this.baseUrl = baseUrl;
     }
 
+    /** Resolves a NIO path to an FTP path string relative to {@link #baseUrl}. */
+    private String toFtpPath(Path path) throws IOException {
+        String p = toPathString(path);
+        if (baseUrl == null || baseUrl.isEmpty() || baseUrl.equals("/")) {
+            return p;
+        }
+        String base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        return p.equals("/") ? base : base + p;
+    }
+
     @Override
-    protected String getFilenameString(TFile entry) {
+    protected String getFilenameString(FTPFile entry) {
         return entry.getName();
     }
 
     @Override
-    protected boolean isFolder(TFile entry) throws IOException {
+    protected boolean isFolder(FTPFile entry) throws IOException {
         return entry.isDirectory();
     }
 
     @Override
-    protected boolean exists(TFile entry) throws IOException {
-        return entry.exists();
+    protected boolean exists(FTPFile entry) throws IOException {
+        return entry != null && entry.isValid();
     }
 
     // TrueVFS might have cache?
     @Override
-    protected TFile getEntry(Path path) throws IOException {
+    protected FTPFile getEntry(Path path) throws IOException {
         return getEntry(path, true);
     }
 
     /**
      * @param check check existence of the path
      */
-    private TFile getEntry(Path path, boolean check) throws IOException {
+    private FTPFile getEntry(Path path, boolean check) throws IOException {
 //Debug.println(Level.FINE, "path: " + path);
         if (ignoreAppleDouble && path.getFileName() != null && isAppleDouble(path)) {
             throw new NoSuchFileException("ignore apple double file: " + path);
         }
 
-        TFile entry = new TFile(baseUrl + toPathString(path));
-Debug.println(Level.FINE, "entry: " + entry + ", " + entry.exists());
-        if (check) {
-            if (entry.exists()) {
-                return entry;
-            } else {
-                throw new NoSuchFileException(path.toString());
-            }
-        } else {
+        if (path.getNameCount() == 0) {
+            FTPFile root = new FTPFile();
+            root.setName("/");
+            root.setType(FTPFile.DIRECTORY_TYPE);
+            root.setTimestamp(Calendar.getInstance());
+            return root;
+        }
+
+        String filename = toFilenameString(path);
+        if (!check) {
+            FTPFile entry = new FTPFile();
+            entry.setName(filename);
+            entry.setType(FTPFile.FILE_TYPE);
+            entry.setTimestamp(Calendar.getInstance());
             return entry;
         }
+
+        Path parent = path.toAbsolutePath().getParent();
+        String parentFtpPath = toFtpPath(parent);
+        FTPFile[] files;
+        synchronized (client) {
+            files = client.listFiles(parentFtpPath);
+        }
+        if (files != null) {
+            for (FTPFile entry : files) {
+                if (entry != null && filename.equals(entry.getName())) {
+Debug.println(Level.FINE, "entry: " + entry + ", true");
+                    return entry;
+                }
+            }
+        }
+        throw new NoSuchFileException(path.toString());
     }
 
     @Override
-    protected InputStream downloadEntry(TFile entry, Path path, Set<? extends OpenOption> options) throws IOException {
-        return new TFileInputStream(entry);
+    protected InputStream downloadEntry(FTPFile entry, Path path, Set<? extends OpenOption> options) throws IOException {
+        String ftpPath = toFtpPath(path);
+        InputStream is = client.retrieveFileStream(ftpPath);
+        if (is == null) {
+            throw new NoSuchFileException(path.toString());
+        }
+        return new Util.InputStreamForDownloading(is) {
+            @Override
+            protected void onClosed() throws IOException {
+                synchronized (client) {
+                    if (!client.completePendingCommand()) {
+                        throw new IOException("completePendingCommand failed: " + path + " (" + client.getReplyString() + ")");
+                    }
+                }
+            }
+        };
     }
 
     @Override
-    protected OutputStream uploadEntry(TFile parentEntry, Path path, Set<? extends OpenOption> options) throws IOException {
-        TFile targetEntry = getEntry(path, false);
-        targetEntry.createNewFile();
-        return new TFileOutputStream(targetEntry);
+    protected OutputStream uploadEntry(FTPFile parentEntry, Path path, Set<? extends OpenOption> options) throws IOException {
+        String ftpPath = toFtpPath(path);
+        OutputStream os = client.storeFileStream(ftpPath);
+        if (os == null) {
+            throw new IOException("storeFileStream failed: " + path + " (" + client.getReplyString() + ")");
+        }
+        return new Util.OutputStreamForUploading(os) {
+            @Override
+            protected void onClosed() throws IOException {
+                synchronized (client) {
+                    if (!client.completePendingCommand()) {
+                        throw new IOException("completePendingCommand failed: " + path + " (" + client.getReplyString() + ")");
+                    }
+                }
+            }
+        };
     }
 
     /** */
-    protected List<TFile> getDirectoryEntries(TFile dirEntry, Path dir) throws IOException {
+    @Override
+    protected List<FTPFile> getDirectoryEntries(FTPFile dirEntry, Path dir) throws IOException {
 //System.err.println("path: " + dir);
 //Arrays.stream(dirEntry.getChildren()).forEach(System.err::println);
-        return Arrays.stream(dirEntry.listFiles()).collect(Collectors.toList());
+        String ftpPath = toFtpPath(dir);
+        FTPFile[] files;
+        synchronized (client) {
+            files = client.listFiles(ftpPath);
+        }
+        if (files == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.stream(files)
+                .filter(f -> f != null && !f.getName().equals(".") && !f.getName().equals(".."))
+                .collect(Collectors.toList());
     }
 
     @Override
-    protected TFile createDirectoryEntry(TFile parentEntry, Path dir) throws IOException {
-        TFile dirEntry = getEntry(dir, false);
-        dirEntry.createNewFile();
+    protected FTPFile createDirectoryEntry(FTPFile parentEntry, Path dir) throws IOException {
+        String ftpPath = toFtpPath(dir);
+        synchronized (client) {
+            if (!client.makeDirectory(ftpPath)) {
+                throw new IOException("makeDirectory failed: " + dir + " (" + client.getReplyString() + ")");
+            }
+        }
+        FTPFile dirEntry = getEntry(dir, false);
+        dirEntry.setType(FTPFile.DIRECTORY_TYPE);
         return dirEntry;
     }
 
     @Override
-    protected boolean hasChildren(TFile dirEntry, Path dir) throws IOException {
-        return dirEntry.listFiles().length > 0;
+    protected boolean hasChildren(FTPFile dirEntry, Path dir) throws IOException {
+        return !getDirectoryEntries(dirEntry, dir).isEmpty();
     }
 
     @Override
-    protected void removeEntry(TFile entry, Path path) throws IOException {
-        TFile.rm(entry);
+    protected void removeEntry(FTPFile entry, Path path) throws IOException {
+        String ftpPath = toFtpPath(path);
+        synchronized (client) {
+            boolean ok = entry.isDirectory() ? client.removeDirectory(ftpPath) : client.deleteFile(ftpPath);
+            if (!ok) {
+                throw new IOException("remove failed: " + path + " (" + client.getReplyString() + ")");
+            }
+        }
     }
 
     @Override
-    protected TFile copyEntry(TFile sourceEntry, TFile targetParentEntry, Path source, Path target, Set<CopyOption> options) throws IOException {
-        TFile targetEntry = getEntry(target, false);
-        targetEntry.cp(sourceEntry);
-        return targetEntry;
+    protected FTPFile copyEntry(FTPFile sourceEntry, FTPFile targetParentEntry, Path source, Path target, Set<CopyOption> options) throws IOException {
+        String sourceFtpPath = toFtpPath(source);
+        String targetFtpPath = toFtpPath(target);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        synchronized (client) {
+            if (!client.retrieveFile(sourceFtpPath, baos)) {
+                throw new IOException("retrieveFile failed: " + source + " (" + client.getReplyString() + ")");
+            }
+            if (!client.storeFile(targetFtpPath, new ByteArrayInputStream(baos.toByteArray()))) {
+                throw new IOException("storeFile failed: " + target + " (" + client.getReplyString() + ")");
+            }
+        }
+        return getEntry(target, false);
     }
 
     @Override
-    protected TFile moveEntry(TFile sourceEntry, TFile targetParentEntry, Path source, Path target, boolean targetIsParent) throws IOException {
-        TFile targetEntry = getEntry(target, false);
-        sourceEntry.mv(targetEntry);
-        return targetEntry;
+    protected FTPFile moveEntry(FTPFile sourceEntry, FTPFile targetParentEntry, Path source, Path target, boolean targetIsParent) throws IOException {
+        String sourceFtpPath = toFtpPath(source);
+        String targetFtpPath = toFtpPath(target);
+        synchronized (client) {
+            if (!client.rename(sourceFtpPath, targetFtpPath)) {
+                throw new IOException("rename failed: " + source + " -> " + target + " (" + client.getReplyString() + ")");
+            }
+        }
+        return getEntry(target, false);
     }
 
     @Override
-    protected TFile moveFolderEntry(TFile sourceEntry, TFile targetParentEntry, Path source, Path target, boolean targetIsParent) throws IOException {
+    protected FTPFile moveFolderEntry(FTPFile sourceEntry, FTPFile targetParentEntry, Path source, Path target, boolean targetIsParent) throws IOException {
         return moveEntry(sourceEntry, targetParentEntry, source, target, targetIsParent);
     }
 
     @Override
-    protected TFile renameEntry(TFile sourceEntry, TFile targetParentEntry, Path source, Path target) throws IOException {
+    protected FTPFile renameEntry(FTPFile sourceEntry, FTPFile targetParentEntry, Path source, Path target) throws IOException {
         return moveEntry(sourceEntry, targetParentEntry, source, target, false);
+    }
+
+    @Override
+    public void close() throws IOException {
+        synchronized (client) {
+            if (client.isConnected()) {
+                try {
+                    client.logout();
+                } finally {
+                    client.disconnect();
+                }
+            }
+        }
     }
 }

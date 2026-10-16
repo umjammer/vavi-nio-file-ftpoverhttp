@@ -84,42 +84,6 @@
     </dependency>
 
     <dependency>
-      <groupId>net.java.truevfs</groupId>
-      <artifactId>truevfs-access</artifactId>
-      <version>${truevfs.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>net.java.truevfs</groupId>
-      <artifactId>truevfs-driver-http</artifactId>
-      <version>${truevfs.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-codec</groupId>
-          <artifactId>commons-codec</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>net.java.truevfs</groupId>
-      <artifactId>truevfs-driver-zip</artifactId>
-      <version>${truevfs.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>commons-codec</groupId>
-          <artifactId>commons-codec</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.commons</groupId>
-          <artifactId>commons-compress</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.bouncycastle</groupId>
-          <artifactId>bcprov-jdk15on</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-
-    <dependency>
       <groupId>com.github.umjammer</groupId>
       <artifactId>vavi-nio-file-base</artifactId>
       <version>0.0.19</version>

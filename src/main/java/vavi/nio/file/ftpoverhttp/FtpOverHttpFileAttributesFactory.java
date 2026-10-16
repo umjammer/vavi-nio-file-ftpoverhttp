@@ -7,7 +7,7 @@
 package vavi.nio.file.ftpoverhttp;
 
 import com.github.fge.filesystem.driver.ExtendedFileSystemDriverBase.ExtendedFileAttributesFactory;
-import net.java.truevfs.access.TFile;
+import org.apache.commons.net.ftp.FTPFile;
 
 
 /**
@@ -19,7 +19,7 @@ import net.java.truevfs.access.TFile;
 public final class FtpOverHttpFileAttributesFactory extends ExtendedFileAttributesFactory {
 
     public FtpOverHttpFileAttributesFactory() {
-        setMetadataClass(TFile.class);
+        setMetadataClass(FTPFile.class);
         addImplementation("basic", FtpOverHttpBasicFileAttributesProvider.class);
     }
 }

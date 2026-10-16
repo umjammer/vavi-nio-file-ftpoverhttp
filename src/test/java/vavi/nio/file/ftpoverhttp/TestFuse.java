@@ -26,7 +26,7 @@ import vavi.net.fuse.Fuse;
 
 
 /**
- * TestFuse. (fuse)
+ * TestFuse.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2017/03/19 umjammer initial version <br>
@@ -47,7 +47,7 @@ public class TestFuse {
         String keyPath = URLEncoder.encode(System.getenv("TEST4_SFTP_KEYPATH"), StandardCharsets.UTF_8);
         String path = System.getenv("TEST4_SFTP_PATH");
 
-        URI uri = URI.create(String.format("truevfs:sftp://%s@%s%s?keyPath=%s&passphrase=%s", username, host, path, keyPath, passPhrase));
+        URI uri = URI.create(String.format("ftpoverhttp:ftp://%s@%s%s?keyPath=%s&passphrase=%s", username, host, path, keyPath, passPhrase));
 
         Map<String, Object> env = new HashMap<>();
         env.put("ignoreAppleDouble", true);
@@ -55,7 +55,7 @@ public class TestFuse {
         fs = FileSystems.newFileSystem(uri, env);
 
         options = new HashMap<>();
-        options.put("fsname", "truevfs_fs" + "@" + System.currentTimeMillis());
+        options.put("fsname", "ftpoverhttp_fs" + "@" + System.currentTimeMillis());
         options.put("noappledouble", null);
         //options.put("noapplexattr", null);
         options.put(vavi.net.fuse.javafs.JavaFSFuse.ENV_DEBUG, false);
@@ -88,7 +88,7 @@ public class TestFuse {
         String url = args[0];
         String mountPoint = String.format(args[1]);
 
-        final URI uri = URI.create(String.format("truevfs:%s", url));
+        final URI uri = URI.create(String.format("ftpoverhttp:%s", url));
 
         final Map<String, Object> env = new HashMap<>();
         env.put("ignoreAppleDouble", true);
@@ -100,7 +100,7 @@ public class TestFuse {
         System.setProperty("vavi.net.fuse.FuseProvider.class", "vavi.net.fuse.fusejna.FuseJnaFuseProvider");
 
         Map<String, Object> options = new HashMap<>();
-        options.put("fsname", "truevfs_fs" + "@" + System.currentTimeMillis());
+        options.put("fsname", "ftpoverhttp_fs" + "@" + System.currentTimeMillis());
         options.put(vavi.net.fuse.javafs.JavaFSFuse.ENV_DEBUG, false);
         options.put(vavi.net.fuse.javafs.JavaFSFuse.ENV_READ_ONLY, false);
         // vfs io uses ThreadLocal to keep internal info when read/write, so this option must be set

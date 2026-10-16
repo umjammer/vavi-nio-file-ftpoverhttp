@@ -12,29 +12,29 @@ import java.nio.file.FileStore;
 import com.github.fge.filesystem.attributes.FileAttributesFactory;
 import com.github.fge.filesystem.filestore.FileStoreBase;
 
-import net.java.ftpoverhttp.access.TFile;
+import org.apache.commons.net.ftp.FTPClient;
 
 
 /**
  * A simple FtpOverHttp {@link FileStore}
  *
  * <p>
- * This makes use of information available in {@link FileSystemManager}.
+ * This makes use of information available in {@link FTPClient}.
  * Information is computed in "real time".
  * </p>
  */
 public final class FtpOverHttpFileStore extends FileStoreBase {
 
-    private final TFile root; // TODO how to get quota
+    private final FTPClient client; // TODO how to get quota
 
     /**
      * Constructor
      *
-     * @param root the (valid) Commons VFS drive to use
+     * @param client the (valid) FTP client to use
      */
-    public FtpOverHttpFileStore(final TFile root, final FileAttributesFactory factory) {
+    public FtpOverHttpFileStore(final FTPClient client, final FileAttributesFactory factory) {
         super("ftpoverhttp", factory, false);
-        this.root = root;
+        this.client = client;
     }
 
     /**

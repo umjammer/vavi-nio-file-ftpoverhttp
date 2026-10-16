@@ -19,8 +19,6 @@ import java.nio.file.spi.FileSystemProvider;
 import java.time.Instant;
 import java.util.Collections;
 
-import net.java.truevfs.access.TFileSystemProvider;
-import net.java.truevfs.access.TPath;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -30,8 +28,7 @@ import vavi.util.Debug;
 import vavi.util.properties.annotation.Property;
 import vavi.util.properties.annotation.PropsEntity;
 
-import net.java.truevfs.access.TFile;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
@@ -45,17 +42,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class TestTrueVfs {
 
     @Property
-    private String file = "file:src/test/resources/";
+    private String file = "src/test/resources/";
 
     @Property
-    private String url = "file:src/test/resources/";
-
-    @Property
-    private String url2;
+    private String url = "src/test/resources/";
 
     @BeforeEach
     void setup() throws Exception {
-        PropsEntity.Util.bind(this);
+        if (Files.exists(Paths.get("local.properties"))) {
+            PropsEntity.Util.bind(this);
+        }
     }
 
     /**
@@ -63,14 +59,16 @@ public class TestTrueVfs {
      */
     public static void main(String[] args) throws Exception {
         TestTrueVfs app = new TestTrueVfs();
-        PropsEntity.Util.bind(app);
+        if (Files.exists(Paths.get("local.properties"))) {
+            PropsEntity.Util.bind(app);
+        }
         app.proceed();
     }
 
     /** file */
     void proceed() throws IOException {
 Debug.println("exists: " + Files.exists(Paths.get(this.file)));
-        File file = new TFile(this.file);
+        File file = new File(this.file);
 System.err.println(file.exists() + ", " + Instant.ofEpochMilli(file.lastModified()) + ", " + file + ", " + file.isDirectory());
         if (file.isDirectory()) { // root
             proceedDir("", file);
@@ -89,48 +87,41 @@ System.err.println(file.exists() + ", " + Instant.ofEpochMilli(file.lastModified
     }
 
     @Test
-    @DisplayName("truevfs path, file")
-    void proceed2() throws IOException {
-        Path path = new TPath(URI.create(this.url2));
+    @DisplayName("ftpoverhttp path, file")
+    void proceed2() throws Exception {
+        try (FtpOverHttpTestServer server = new FtpOverHttpTestServer();
+             FileSystem fs = FileSystems.newFileSystem(server.getUri(), Collections.emptyMap())) {
+            Files.copy(Paths.get("src/test/resources/Hello.java"), server.getRoot().resolve("Hello.java"), StandardCopyOption.REPLACE_EXISTING);
+
+            Path path = fs.getPath("/Hello.java");
 Debug.println(path.getFileSystem());
 System.err.println(Files.exists(path) + ", " + Files.getLastModifiedTime(path) + ", " + path + ", " + Files.isDirectory(path)  + ", " + Files.size(path));
-        Path out = Paths.get("tmp").resolve(path.getFileName().toString());
-        if (!Files.exists(out.getParent())) {
-            Files.createDirectories(out.getParent());
-        }
-        Files.copy(Files.newInputStream(path), out, StandardCopyOption.REPLACE_EXISTING);
+            Path out = Paths.get("tmp").resolve(path.getFileName().toString());
+            if (!Files.exists(out.getParent())) {
+                Files.createDirectories(out.getParent());
+            }
+            Files.copy(Files.newInputStream(path), out, StandardCopyOption.REPLACE_EXISTING);
 Debug.println("out: " + Files.exists(out) + ", " + Files.size(out));
-        assertTrue(Files.exists(out));
-        assertTrue(Files.size(out) > 0);
+            assertTrue(Files.exists(out));
+            assertTrue(Files.size(out) > 0);
+            assertEquals(Files.size(Paths.get("src/test/resources/Hello.java")), Files.size(out));
+        }
     }
 
     @Test
-    @DisplayName("truevfs path, html")
-    void proceed22() throws IOException {
-        Path path = new TPath(URI.create(this.url));
-Debug.println(path.getFileSystem());
-System.err.println(Files.exists(path) + ", " + Files.getLastModifiedTime(path) + ", " + path + ", " + Files.isDirectory(path)  + ", " + Files.size(path));
-        Path out = Paths.get("tmp").resolve(path.getFileName().toString());
-        if (!Files.exists(out.getParent())) {
-            Files.createDirectories(out.getParent());
-        }
-        Files.copy(Files.newInputStream(path), out, StandardCopyOption.REPLACE_EXISTING);
-Debug.println("out: " + Files.exists(out) + ", " + Files.size(out));
-        assertTrue(Files.exists(out));
-        assertTrue(Files.size(out) > 0);
-    }
-
-    @Test
-    @DisplayName("truevfs filesystem")
-    @Disabled("url syntax???")
+    @DisplayName("ftpoverhttp walk")
     void proceed3() throws Exception {
-        TFileSystemProvider.installedProviders().forEach(System.err::println);
-        URI uri = URI.create("tpath://" + this.url); // "tpath://" is correct
-Debug.println("uri: " + uri + ", path: " + uri.getPath());
-        FileSystem fs = FileSystems.newFileSystem(uri, Collections.emptyMap());
-        Path root = fs.getRootDirectories().iterator().next();
+        FileSystemProvider.installedProviders().forEach(System.err::println);
+        // "tpath://" is correct
+        try (FtpOverHttpTestServer server = new FtpOverHttpTestServer();
+             FileSystem fs = FileSystems.newFileSystem(server.getUri(), Collections.emptyMap())) {
+            Files.copy(Paths.get("src/test/resources/Hello.java"), server.getRoot().resolve("Hello.java"), StandardCopyOption.REPLACE_EXISTING);
+
+            Path root = fs.getRootDirectories().iterator().next();
 Debug.println("root: " + root + ", " + root.getClass().getName());
-        Files.walk(root).forEach(System.err::println);
+            Files.walk(root).forEach(System.err::println);
+            assertEquals(2, Files.walk(root).count());
+        }
     }
 
     @Test

@@ -21,7 +21,7 @@ import javax.annotation.Nonnull;
 
 import com.github.fge.filesystem.attributes.provider.BasicFileAttributesProvider;
 
-import net.java.ftpoverhttp.access.TFile;
+import org.apache.commons.net.ftp.FTPFile;
 
 
 /**
@@ -32,9 +32,9 @@ import net.java.ftpoverhttp.access.TFile;
  */
 public final class FtpOverHttpBasicFileAttributesProvider extends BasicFileAttributesProvider implements PosixFileAttributes {
 
-    private final TFile entry;
+    private final FTPFile entry;
 
-    public FtpOverHttpBasicFileAttributesProvider(@Nonnull final TFile entry) throws IOException {
+    public FtpOverHttpBasicFileAttributesProvider(@Nonnull final FTPFile entry) throws IOException {
         this.entry = Objects.requireNonNull(entry);
     }
 
@@ -51,7 +51,7 @@ public final class FtpOverHttpBasicFileAttributesProvider extends BasicFileAttri
      */
     @Override
     public FileTime lastModifiedTime() {
-        return FileTime.fromMillis(entry.lastModified());
+        return FileTime.fromMillis(entry.getTimestamp() != null ? entry.getTimestamp().getTimeInMillis() : 0);
     }
 
     /**
@@ -81,19 +81,19 @@ public final class FtpOverHttpBasicFileAttributesProvider extends BasicFileAttri
      */
     @Override
     public long size() {
-        return entry.length();
+        return entry.getSize();
     }
 
     /* @see java.nio.file.attribute.PosixFileAttributes#owner() */
     @Override
     public UserPrincipal owner() {
-        return null;
+        return entry.getUser() != null ? entry::getUser : null;
     }
 
     /* @see java.nio.file.attribute.PosixFileAttributes#group() */
     @Override
     public GroupPrincipal group() {
-        return null;
+        return entry.getGroup() != null ? entry::getGroup : null;
     }
 
     /* @see java.nio.file.attribute.PosixFileAttributes#permissions() */
