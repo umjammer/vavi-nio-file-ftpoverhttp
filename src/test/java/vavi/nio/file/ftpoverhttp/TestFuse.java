@@ -23,7 +23,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import vavi.net.fuse.Base;
 import vavi.net.fuse.Fuse;
-import vavi.nio.file.ftpovergttp.FtpOverHttpFileSystemProvider;
 
 
 /**

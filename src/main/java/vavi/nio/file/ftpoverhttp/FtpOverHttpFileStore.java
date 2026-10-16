@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.ftpovergttp;
+package vavi.nio.file.ftpoverhttp;
 
 import java.io.IOException;
 import java.nio.file.FileStore;

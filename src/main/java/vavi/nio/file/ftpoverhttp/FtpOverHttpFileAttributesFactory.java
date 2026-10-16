@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.ftpovergttp;
+package vavi.nio.file.ftpoverhttp;
 
 import com.github.fge.filesystem.driver.ExtendedFileSystemDriverBase.ExtendedFileAttributesFactory;
 import net.java.truevfs.access.TFile;

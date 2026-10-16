@@ -14,8 +14,6 @@ import java.util.Collections;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import vavi.nio.file.ftpovergttp.FtpOverHttpFileSystemProvider;
-
 import static vavi.nio.file.Base.testAll;
 
 
