@@ -3,24 +3,23 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>vavi</groupId>
-  <artifactId>vavi-nio-file-truevfs</artifactId>
+  <artifactId>vavi-nio-file-ftpoverhttp</artifactId>
   <version>0.0.1-SNAPSHOT</version>
 
-  <name>vavi-nio-file-truevfs</name>
-  <url>https://github.com/umjammer/vavi-nio-file-truevfs</url>
+  <name>vavi-nio-file-ftpoverhttp</name>
+  <url>https://github.com/umjammer/vavi-nio-file-ftpoverhttp</url>
   <scm>
-    <url>https://github.com/umjammer/vavi-nio-file-truevfs</url>
+    <url>https://github.com/umjammer/vavi-nio-file-ftpoverhttp</url>
   </scm>
   <issueManagement>
-    <url>https://github.com/umjammer/vavi-nio-file-truevfs/issues</url>
+    <url>https://github.com/umjammer/vavi-nio-file-ftpoverhttp/issues</url>
   </issueManagement>
 
   <properties>
-    <vavi-net-fuse.groupId>com.github.umjammer.vavi-apps-fuse</vavi-net-fuse.groupId>
-    <vavi-net-fuse.version>0.1.9</vavi-net-fuse.version>
+    <vavi-nio-file-fuse.groupId>com.github.umjammer</vavi-nio-file-fuse.groupId> <!-- vavi / com.github.umjammer -->
+    <vavi-nio-file-fuse.version>0.0.18</vavi-nio-file-fuse.version>
     <vavi-nio-file.groupId>com.github.umjammer</vavi-nio-file.groupId> <!-- com.github.umjammer -->
     <vavi-nio-file.version>0.0.15</vavi-nio-file.version>
-    <truevfs.version>0.14.0</truevfs.version>
   </properties>
 
   <build>
@@ -28,7 +27,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.12.1</version>
+        <version>3.16.0</version>
         <configuration>
           <release>17</release>
         </configuration>
@@ -36,10 +35,14 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.2.5</version>
+        <version>3.6.0</version>
         <configuration>
+          <environmentVariables>
+            <TEST_MOUNT_POINT>/Users/nsano/mnt/fuse</TEST_MOUNT_POINT>
+          </environmentVariables>
           <argLine>
             -Djava.util.logging.config.file=${project.build.testOutputDirectory}/logging.properties
+            -Djna.library.path=/usr/local/lib
           </argLine>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
@@ -63,16 +66,6 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
-<!--
-
-      <dependency>
-        <groupId>com.github.broadinstitute.alfre</groupId>
-        <artifactId>alfre-v0-bom</artifactId>
-        <version>master-2bf0c0c604-1</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
--->
     </dependencies>
   </dependencyManagement>
 
@@ -92,8 +85,17 @@
           <groupId>org.eclipse.jetty</groupId>
           <artifactId>jetty-http</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>org.eclipse.jetty</groupId>
+          <artifactId>jetty-client</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
+<dependency>
+  <groupId>org.eclipse.jetty</groupId>
+  <artifactId>jetty-client</artifactId>
+  <version>12.1.14</version>
+</dependency>
 <dependency>
   <groupId>org.eclipse.jetty</groupId>
   <artifactId>jetty-http</artifactId>
@@ -148,18 +150,39 @@
     </dependency>
 
     <dependency>
-      <groupId>${vavi-net-fuse.groupId}</groupId>
-      <artifactId>vavi-net-fuse</artifactId>
-      <version>${vavi-net-fuse.version}</version>
+      <groupId>${vavi-nio-file-fuse.groupId}</groupId>
+      <artifactId>vavi-nio-file-fuse</artifactId>
+      <version>${vavi-nio-file-fuse.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>${vavi-net-fuse.groupId}</groupId>
-      <artifactId>vavi-net-fuse</artifactId>
-      <version>${vavi-net-fuse.version}</version>
+      <groupId>${vavi-nio-file-fuse.groupId}</groupId>
+      <artifactId>vavi-nio-file-fuse</artifactId>
+      <version>${vavi-nio-file-fuse.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>org.ow2.asm</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
+<dependency>
+  <groupId>org.ow2.asm</groupId>
+  <artifactId>asm-analysis</artifactId>
+  <version>9.11</version>
+</dependency>
+<dependency>
+  <groupId>org.ow2.asm</groupId>
+  <artifactId>asm</artifactId>
+  <version>9.11</version>
+</dependency>
+<dependency>
+  <groupId>org.ow2.asm</groupId>
+  <artifactId>asm-commons</artifactId>
+  <version>9.11</version>
+</dependency>
 
     <dependency>
       <groupId>com.github.magicDGS</groupId>
@@ -167,13 +190,5 @@
       <version>5e20eec26f</version>
       <scope>test</scope>
     </dependency>
-<!--
-    <dependency>
-      <groupId>com.github.broadinstitute.alfre</groupId>
-      <artifactId>alfre-v0-impl-http</artifactId>
-      <version>master-2bf0c0c604-1</version>
-      <scope>test</scope>
-    </dependency>
--->
   </dependencies>
 </project>

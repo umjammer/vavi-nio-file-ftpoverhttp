@@ -1,6 +1,6 @@
-[![Release](https://jitpack.io/v/umjammer/vavi-nio-file-truevfs.svg)](https://jitpack.io/#umjammer/vavi-nio-file-truevfs)
-[![Java CI](https://github.com/umjammer/vavi-nio-file-truevfs/actions/workflows/maven.yml/badge.svg)](https://github.com/umjammer/vavi-nio-file-truevfs/actions/workflows/maven.yml)
-[![CodeQL](https://github.com/umjammer/vavi-nio-file-truevfs/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/umjammer/vavi-nio-file-truevfs/actions/workflows/codeql-analysis.yml)
+[![Release](https://jitpack.io/v/umjammer/vavi-nio-file-ftpoverhttp.svg)](https://jitpack.io/#umjammer/vavi-nio-file-ftpoverhttp)
+[![Java CI](https://github.com/umjammer/vavi-nio-file-ftpoverhttp/actions/workflows/maven.yml/badge.svg)](https://github.com/umjammer/vavi-nio-file-ftpoverhttp/actions/workflows/maven.yml)
+[![CodeQL](https://github.com/umjammer/vavi-nio-file-ftpoverhttp/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/umjammer/vavi-nio-file-ftpoverhttp/actions/workflows/codeql-analysis.yml)
 ![Java](https://img.shields.io/badge/Java-8-b07219)
 
 # vavi-nio-file-ftpoverhttp
@@ -9,15 +9,13 @@ A Java NIO FileSystem implementation for ftp over http.
 
 ### Status
 
-| fs         | list | upload | download | copy | move | rm | mkdir | cache | watch |
-|------------|:----:|:------:|:--------:|:----:|:----:|:--:|:-----:|:-----:|:-----:|
-| http(s)    |  🚫  |        |    ?     |      |      |    |       |       |       |
-| zip        |  ✅   |        |    ?     |      |      |    |       |       |       |
-| zip (fuse) |  ✅   |        |    ?     |      |      |    |       |       |       |
+| fs          | list | upload | download | copy | move | rm | mkdir | cache | watch |
+|-------------|:----:|:------:|:--------:|:----:|:----:|:--:|:-----:|:-----:|:-----:|
+| ftpoverhttp |  ✅️  |        |    ?     |      |      |    |       |       |       |
 
 ## Install
 
- * [maven](https://jitpack.io/#umjammer/vavi-nio-file-truevfs)
+ * [maven](https://jitpack.io/#umjammer/vavi-nio-file-ftpoverhttp)
 
 ## Usage
 
@@ -30,5 +28,4 @@ A Java NIO FileSystem implementation for ftp over http.
 
 ## TODO
 
- * truevfs has own FileSystem `TFileSystem`, `TFileSystemProvider`
- * how about wget https://github.com/winneryong/wget
+ * ~~how about wget https://github.com/winneryong/wget~~
