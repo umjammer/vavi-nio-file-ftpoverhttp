@@ -55,7 +55,7 @@ public final class FtpOverHttpFileSystemDriver extends ExtendedFileSystemDriver<
     private final String baseUrl;
 
     /**
-     * @param env { "baseUrl": "smb://10.3.1.1/Temporary Share/", "ignoreAppleDouble": boolean }
+     * @param env { "ignoreAppleDouble": boolean }
      */
     public FtpOverHttpFileSystemDriver(FileStore fileStore,
                                        FileSystemFactoryProvider provider,
@@ -97,7 +97,7 @@ public final class FtpOverHttpFileSystemDriver extends ExtendedFileSystemDriver<
         return entry != null && entry.isValid();
     }
 
-    // TrueVFS might have cache?
+    // FTPFile might have cache?
     @Override
     protected FTPFile getEntry(Path path) throws IOException {
         return getEntry(path, true);
@@ -146,38 +146,37 @@ Debug.println(Level.FINE, "entry: " + entry + ", true");
         throw new NoSuchFileException(path.toString());
     }
 
+    /**
+     * the whole content is retrieved at once, because while a data transfer is pending
+     * the control connection cannot accept other commands (e.g. LIST from a fuse getattr),
+     * that causes a deadlock.
+     */
     @Override
     protected InputStream downloadEntry(FTPFile entry, Path path, Set<? extends OpenOption> options) throws IOException {
         String ftpPath = toFtpPath(path);
-        InputStream is = client.retrieveFileStream(ftpPath);
-        if (is == null) {
-            throw new NoSuchFileException(path.toString());
-        }
-        return new Util.InputStreamForDownloading(is) {
-            @Override
-            protected void onClosed() throws IOException {
-                synchronized (client) {
-                    if (!client.completePendingCommand()) {
-                        throw new IOException("completePendingCommand failed: " + path + " (" + client.getReplyString() + ")");
-                    }
-                }
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        synchronized (client) {
+            if (!client.retrieveFile(ftpPath, baos)) {
+                throw new NoSuchFileException(path + " (" + client.getReplyString() + ")");
             }
-        };
+        }
+        return new ByteArrayInputStream(baos.toByteArray());
     }
 
+    /**
+     * the content is buffered and stored at closing, because while a data transfer is pending
+     * the control connection cannot accept other commands (e.g. LIST from a fuse getattr),
+     * that causes a deadlock.
+     */
     @Override
     protected OutputStream uploadEntry(FTPFile parentEntry, Path path, Set<? extends OpenOption> options) throws IOException {
         String ftpPath = toFtpPath(path);
-        OutputStream os = client.storeFileStream(ftpPath);
-        if (os == null) {
-            throw new IOException("storeFileStream failed: " + path + " (" + client.getReplyString() + ")");
-        }
-        return new Util.OutputStreamForUploading(os) {
+        return new Util.OutputStreamForUploading() {
             @Override
             protected void onClosed() throws IOException {
                 synchronized (client) {
-                    if (!client.completePendingCommand()) {
-                        throw new IOException("completePendingCommand failed: " + path + " (" + client.getReplyString() + ")");
+                    if (!client.storeFile(ftpPath, getInputStream())) {
+                        throw new IOException("storeFile failed: " + path + " (" + client.getReplyString() + ")");
                     }
                 }
             }

@@ -43,17 +43,14 @@ public final class FtpOverHttpFileSystemRepository extends FileSystemRepositoryB
     }
 
     /**
-     * @param uri "ftpoverhttp:protocol:///?alias=alias",
-     *            sub url (after "truevfs:") parts will be replaced by properties.
-     *            if you don't use alias, the url must include username, password, host, port.
+     * @param uri "ftpoverhttp://host:port",
      */
     @Nonnull
     @Override
     public FileSystemDriver createDriver(final URI uri, final Map<String, ?> env) throws IOException {
         String uriString = uri.toString();
-        URI subUri = uri.isOpaque() ? URI.create(uriString.substring(uriString.indexOf(':') + 1)) : uri;
 
-        String host = subUri.getHost();
+        String host = uri.getHost();
         if ((host == null || host.isEmpty()) && env.containsKey("host")) {
             host = String.valueOf(env.get("host"));
         }
@@ -61,7 +58,7 @@ public final class FtpOverHttpFileSystemRepository extends FileSystemRepositoryB
             throw new IllegalArgumentException("missing host in uri: " + uri);
         }
 
-        int port = subUri.getPort();
+        int port = uri.getPort();
         if (port == -1 && env.containsKey("port")) {
             Object p = env.get("port");
             port = p instanceof Number n ? n.intValue() : Integer.parseInt(String.valueOf(p));
@@ -72,7 +69,7 @@ public final class FtpOverHttpFileSystemRepository extends FileSystemRepositoryB
 
         String username = "anonymous";
         String password = "";
-        String rawUserInfo = subUri.getRawUserInfo();
+        String rawUserInfo = uri.getRawUserInfo();
         if (rawUserInfo != null && !rawUserInfo.isEmpty()) {
             int colon = rawUserInfo.indexOf(':');
             if (colon >= 0) {
@@ -89,7 +86,7 @@ public final class FtpOverHttpFileSystemRepository extends FileSystemRepositoryB
             password = String.valueOf(env.get("password"));
         }
 
-        Map<String, String> params = getParamsMap(subUri);
+        Map<String, String> params = getParamsMap(uri);
         String proxyHost = params.get("proxyHost");
         if (proxyHost == null && env.containsKey("proxyHost")) {
             proxyHost = String.valueOf(env.get("proxyHost"));
@@ -126,7 +123,7 @@ public final class FtpOverHttpFileSystemRepository extends FileSystemRepositoryB
             proxyPassword = System.getProperty("http.proxyPassword");
         }
 
-        String baseUrl = subUri.getPath() != null ? subUri.getPath() : "";
+        String baseUrl = uri.getPath() != null ? uri.getPath() : "";
 Debug.println(Level.FINE, "baseUrl: " + baseUrl + ", host: " + host + ":" + port + ", proxy: " + proxyHost + ":" + proxyPort);
 
         FTPClient client;

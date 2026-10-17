@@ -8,21 +8,20 @@ package vavi.nio.file.ftpoverhttp;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.Map;
 
+import vavi.net.fuse.Base;
+import vavi.net.fuse.Fuse;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.condition.DisabledIfEnvironmentVariable;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import vavi.net.fuse.Base;
-import vavi.net.fuse.Fuse;
 
 
 /**
@@ -32,22 +31,28 @@ import vavi.net.fuse.Fuse;
  * @version 0.00 2017/03/19 umjammer initial version <br>
  */
 @DisabledIfEnvironmentVariable(named = "GITHUB_WORKFLOW", matches = ".*")
-public class TestFuse {
+class TestFuse {
 
     String mountPoint;
     FileSystem fs;
     Map<String, Object> options;
+    static FtpOverHttpTestServer server;
+
+    @BeforeAll
+    static void setupAll() throws Exception {
+        server = new FtpOverHttpTestServer();
+    }
+
+    @AfterAll
+    static void afterAll() throws Exception {
+        server.close();
+    }
 
     @BeforeEach
-    public void before() throws Exception {
-        mountPoint = System.getenv("TEST4_MOUNT_POINT");
-        String username = URLEncoder.encode(System.getenv("TEST4_SFTP_ACCOUNT"), StandardCharsets.UTF_8);
-        String passPhrase = URLEncoder.encode(System.getenv("TEST4_SFTP_PASSPHRASE"), StandardCharsets.UTF_8);
-        String host = System.getenv("TEST4_SFTP_HOST");
-        String keyPath = URLEncoder.encode(System.getenv("TEST4_SFTP_KEYPATH"), StandardCharsets.UTF_8);
-        String path = System.getenv("TEST4_SFTP_PATH");
+    void before() throws Exception {
+        mountPoint = System.getenv("TEST_MOUNT_POINT");
 
-        URI uri = URI.create(String.format("ftpoverhttp:ftp://%s@%s%s?keyPath=%s&passphrase=%s", username, host, path, keyPath, passPhrase));
+        URI uri = server.getUri();
 
         Map<String, Object> env = new HashMap<>();
         env.put("ignoreAppleDouble", true);
@@ -70,7 +75,6 @@ public class TestFuse {
         "vavi.net.fuse.jnrfuse.JnrFuseFuseProvider",
         "vavi.net.fuse.fusejna.FuseJnaFuseProvider",
     })
-    @Disabled("no writing scheme")
     public void test01(String providerClassName) throws Exception {
         System.setProperty("vavi.net.fuse.FuseProvider.class", providerClassName);
 
@@ -84,13 +88,13 @@ public class TestFuse {
     /**
      * @param args 0: alias, args 1: mount point (should be replaced by alias)
      */
-    public static void main(final String... args) throws IOException {
+    public static void main(String... args) throws IOException {
         String url = args[0];
         String mountPoint = String.format(args[1]);
 
-        final URI uri = URI.create(String.format("ftpoverhttp:%s", url));
+        URI uri = URI.create(String.format("ftpoverhttp://%s", url));
 
-        final Map<String, Object> env = new HashMap<>();
+        Map<String, Object> env = new HashMap<>();
         env.put("ignoreAppleDouble", true);
 
         FileSystem fs = new FtpOverHttpFileSystemProvider().newFileSystem(uri, env);

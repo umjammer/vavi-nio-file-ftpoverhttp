@@ -76,7 +76,7 @@ System.err.println(file.exists() + ", " + Instant.ofEpochMilli(file.lastModified
     }
 
     /** file sub */
-    void proceedDir(String parent, File dir) {
+    static void proceedDir(String parent, File dir) {
         for (File file : dir.listFiles()) {
             if (file.isDirectory()) {
                 proceedDir(parent + "/" + file.getName(), file);

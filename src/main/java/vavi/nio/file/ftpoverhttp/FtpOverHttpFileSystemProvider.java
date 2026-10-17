@@ -17,8 +17,6 @@ import com.github.fge.filesystem.provider.FileSystemProviderBase;
  */
 public final class FtpOverHttpFileSystemProvider extends FileSystemProviderBase {
 
-    public static final String PARAM_ALIAS = "alias";
-
     public FtpOverHttpFileSystemProvider() {
         super(new FtpOverHttpFileSystemRepository());
     }
