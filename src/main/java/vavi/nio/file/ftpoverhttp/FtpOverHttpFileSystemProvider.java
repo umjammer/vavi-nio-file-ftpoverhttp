@@ -4,22 +4,20 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.truevfs;
+package vavi.nio.file.ftpoverhttp;
 
 import com.github.fge.filesystem.provider.FileSystemProviderBase;
 
 
 /**
- * TrueVfsFileSystemProvider.
+ * FtpOverHttpFileSystemProvider.
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2021/11/30 umjammer initial version <br>
  */
-public final class TrueVfsFileSystemProvider extends FileSystemProviderBase {
+public final class FtpOverHttpFileSystemProvider extends FileSystemProviderBase {
 
-    public static final String PARAM_ALIAS = "alias";
-
-    public TrueVfsFileSystemProvider() {
-        super(new TrueVfsFileSystemRepository());
+    public FtpOverHttpFileSystemProvider() {
+        super(new FtpOverHttpFileSystemRepository());
     }
 }

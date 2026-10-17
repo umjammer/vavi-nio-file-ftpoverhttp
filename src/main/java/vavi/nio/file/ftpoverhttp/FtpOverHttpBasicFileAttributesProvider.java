@@ -4,7 +4,7 @@
  * Programmed by Naohide Sano
  */
 
-package vavi.nio.file.truevfs;
+package vavi.nio.file.ftpoverhttp;
 
 import java.io.IOException;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -21,20 +21,20 @@ import javax.annotation.Nonnull;
 
 import com.github.fge.filesystem.attributes.provider.BasicFileAttributesProvider;
 
-import net.java.truevfs.access.TFile;
+import org.apache.commons.net.ftp.FTPFile;
 
 
 /**
- * {@link BasicFileAttributes} implementation for TrueVFS
+ * {@link BasicFileAttributes} implementation for FtpOverHttp
  *
  * @author <a href="mailto:umjammer@gmail.com">Naohide Sano</a> (umjammer)
  * @version 0.00 2021/11/30 umjammer initial version <br>
  */
-public final class TrueVfsBasicFileAttributesProvider extends BasicFileAttributesProvider implements PosixFileAttributes {
+public final class FtpOverHttpBasicFileAttributesProvider extends BasicFileAttributesProvider implements PosixFileAttributes {
 
-    private final TFile entry;
+    private final FTPFile entry;
 
-    public TrueVfsBasicFileAttributesProvider(@Nonnull final TFile entry) throws IOException {
+    public FtpOverHttpBasicFileAttributesProvider(@Nonnull final FTPFile entry) throws IOException {
         this.entry = Objects.requireNonNull(entry);
     }
 
@@ -51,7 +51,7 @@ public final class TrueVfsBasicFileAttributesProvider extends BasicFileAttribute
      */
     @Override
     public FileTime lastModifiedTime() {
-        return FileTime.fromMillis(entry.lastModified());
+        return FileTime.fromMillis(entry.getTimestamp() != null ? entry.getTimestamp().getTimeInMillis() : 0);
     }
 
     /**
@@ -81,19 +81,19 @@ public final class TrueVfsBasicFileAttributesProvider extends BasicFileAttribute
      */
     @Override
     public long size() {
-        return entry.length();
+        return entry.getSize();
     }
 
     /* @see java.nio.file.attribute.PosixFileAttributes#owner() */
     @Override
     public UserPrincipal owner() {
-        return null;
+        return entry.getUser() != null ? entry::getUser : null;
     }
 
     /* @see java.nio.file.attribute.PosixFileAttributes#group() */
     @Override
     public GroupPrincipal group() {
-        return null;
+        return entry.getGroup() != null ? entry::getGroup : null;
     }
 
     /* @see java.nio.file.attribute.PosixFileAttributes#permissions() */

@@ -1,1 +1,1 @@
-vavi.nio.file.truevfs.TrueVfsFileSystemProvider
+vavi.nio.file.ftpoverhttp.FtpOverHttpFileSystemProvider
