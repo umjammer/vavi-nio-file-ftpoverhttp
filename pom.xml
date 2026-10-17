@@ -4,7 +4,7 @@
 
   <groupId>vavi</groupId>
   <artifactId>vavi-nio-file-ftpoverhttp</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>0.0.1</version>
 
   <name>vavi-nio-file-ftpoverhttp</name>
   <url>https://github.com/umjammer/vavi-nio-file-ftpoverhttp</url>
